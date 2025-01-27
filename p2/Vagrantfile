@@ -1,0 +1,36 @@
+server_ip =  "192.168.56.110"
+agent_ip  =  "192.168.56.111"
+
+server_script = <<-SHELL
+  sudo -i
+  apt update && apt install -y curl
+
+  export INSTALL_K3S_EXEC="--bind-address=#{server_ip} --node-external-ip=#{server_ip} --flannel-iface=eth1"
+
+  curl -sfL https://get.k3s.io | sh -
+
+  echo "Sleeping for 5 seconds to wait for k3s to start"
+  sleep 5
+
+  cp /var/lib/rancher/k3s/server/token /vagrant_shared 
+  cp /etc/rancher/k3s/k3s.yaml /vagrant_shared
+
+  echo "192.168.56.110 app1.com" >> /etc/hosts
+  echo "192.168.56.110 app2.com" >> /etc/hosts
+  echo "192.168.56.110 app3.com" >> /etc/hosts
+
+SHELL
+
+Vagrant.configure("2") do |config|
+  config.vm.box = "debian/bookworm64"
+
+  config.vm.define "srachdiS" do |c|
+    c.vm.hostname = "srachdiS"
+    c.vm.network "private_network", ip: server_ip
+    c.vm.synced_folder "./shared", "/vagrant_shared"
+    c.vm.provider "virtualbox" do |v|
+      v.customize ["modifyvm", :id, "--name", "srachdiS","--cpus", 4, "--memory", 2048]
+    end
+    c.vm.provision "shell", inline: server_script
+  end
+end

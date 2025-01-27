@@ -1,33 +1,34 @@
-# -*- mode: ruby -*-
-# vi: set ft=ruby :
-
 server_ip =  "192.168.56.110"
 agent_ip  =  "192.168.56.111"
 
-server_scirpt = <<-SHELL
-  sudo -i
-  apk update
-  apk add curl
+server_script = <<-SHELL
+
+  sudo apt-get update && sudo apt-get upgrade -y && sudo apt-get install -y curl
+
   export INSTALL_K3S_EXEC="--bind-address=#{server_ip} --node-external-ip=#{server_ip} --flannel-iface=eth1"
-  curl -sfL https://get.k3s.io | sh -
+
+  curl -sfL https://get.k3s.io | sudo sh - || { echo "Failed to install k3s"; exit 1; }
+
   echo "Sleeping for 5 seconds to wait for k3s to start"
   sleep 5
-  cp /var/lib/rancher/k3s/server/token /vagrant_shared
-  cp /etc/rancher/k3s/k3s.yaml /vagrant_shared
-  SHELL
+
+  sudo cp /var/lib/rancher/k3s/server/token /vagrant_shared || { echo "Failed to copy token"; exit 1; }
+  sudo cp /etc/rancher/k3s/k3s.yaml /vagrant_shared || { echo "Failed to copy k3s.yaml"; exit 1; }
+SHELL
 
 agent_script = <<-SHELL
-  sudo -i
-  apk update
-  apk add curl
+
+  sudo apt update && sudo apt upgrade -y && sudo apt install -y curl
+
   export K3S_TOKEN_FILE=/vagrant_shared/token
   export K3S_URL=https://#{server_ip}:6443
   export INSTALL_K3S_EXEC="--flannel-iface=eth1"
-  curl -sfL https://get.k3s.io | sh -
-  SHELL
+
+  curl -sfL https://get.k3s.io | sudo sh - || { echo "Failed to install k3s agent"; exit 1; }
+SHELL
 
 Vagrant.configure("2") do |config|
-  config.vm.box = "generic/alpine318"
+  config.vm.box = "debian/bookworm64"
 
   config.vm.define "srachdiS" do |c|
     c.vm.hostname = "srachdiS"
@@ -36,7 +37,7 @@ Vagrant.configure("2") do |config|
     c.vm.provider "virtualbox" do |v|
       v.customize ["modifyvm", :id, "--name", "srachdiS","--cpus", 2, "--memory", 1024]
     end
-    c.vm.provision "shell", inline: server_scirpt
+    c.vm.provision "shell", inline: server_script
   end
   config.vm.define "srachdiSW" do |c|
     c.vm.hostname = "srachdiSW"
