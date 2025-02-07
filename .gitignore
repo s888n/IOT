@@ -1,2 +1,3 @@
 shared/
 .vagrant/
+*.DS_Store

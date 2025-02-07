@@ -3,28 +3,28 @@ agent_ip  =  "192.168.56.111"
 
 server_script = <<-SHELL
 
-  sudo apt-get update && sudo apt-get upgrade -y && sudo apt-get install -y curl
+  apt-get update && apt-get upgrade -y && apt-get install -y curl
 
   export INSTALL_K3S_EXEC="--bind-address=#{server_ip} --node-external-ip=#{server_ip} --flannel-iface=eth1"
 
-  curl -sfL https://get.k3s.io | sudo sh - || { echo "Failed to install k3s"; exit 1; }
+  curl -sfL https://get.k3s.io | sh - || { echo "Failed to install k3s"; exit 1; }
 
   echo "Sleeping for 5 seconds to wait for k3s to start"
   sleep 5
 
-  sudo cp /var/lib/rancher/k3s/server/token /vagrant_shared || { echo "Failed to copy token"; exit 1; }
-  sudo cp /etc/rancher/k3s/k3s.yaml /vagrant_shared || { echo "Failed to copy k3s.yaml"; exit 1; }
+  cp /var/lib/rancher/k3s/server/token /vagrant_shared || { echo "Failed to copy token"; exit 1; }
+  cp /etc/rancher/k3s/k3s.yaml /vagrant_shared || { echo "Failed to copy k3s.yaml"; exit 1; }
 SHELL
 
 agent_script = <<-SHELL
 
-  sudo apt update && sudo apt upgrade -y && sudo apt install -y curl
+  apt-get update && apt-get upgrade -y && apt-get install -y curl
 
   export K3S_TOKEN_FILE=/vagrant_shared/token
   export K3S_URL=https://#{server_ip}:6443
   export INSTALL_K3S_EXEC="--flannel-iface=eth1"
 
-  curl -sfL https://get.k3s.io | sudo sh - || { echo "Failed to install k3s agent"; exit 1; }
+  curl -sfL https://get.k3s.io | sh - || { echo "Failed to install k3s agent"; exit 1; }
 SHELL
 
 Vagrant.configure("2") do |config|
