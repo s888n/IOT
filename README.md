@@ -21,7 +21,7 @@ A minimal introduction to Kubernetes.
 - [ArgoCD Tutorial for Beginners](https://www.youtube.com/watch?v=zGndgdGa1Tc&list=PLiMWaCMwGJXkktZoHhmL6sbg7ELNjv9Xw)
 - [AgroCD Kubernetes](https://www.youtube.com/watch?v=HX24uMKmJRw&list=PL34sAs7_26wMW4bWKnMIfEd87aPuw75by&index=1)
 - [How to install Gitlab on Kubernetes?](https://www.youtube.com/watch?v=4yIIqQczAXY)
-
+- [K8s basics](https://www.youtube.com/@nowzarifarhad/videos)
 ### Repos
 
 - [Gitlab Helm Values](https://gitlab.com/gitlab-org/charts/gitlab/-/blob/master/values.yaml)
