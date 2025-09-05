@@ -1,35 +1,69 @@
-server_ip =  "192.168.56.110"
+server_ip = "192.168.56.110"
 
 server_script = <<-SHELL
+  set -euo pipefail
 
-  set -e
-  apt-get update && apt-get install -y curl vim
+  export DEBIAN_FRONTEND=noninteractive
 
-  # Install Docker
-  curl -fsSL https://get.docker.com -o get-docker.sh
-  sh get-docker.sh
+  echo "[*] Updating system..."
+  apt-get update -qq
+  apt-get install -y -qq \
+    curl \
+    wget \
+    vim \
+    btop \
+    apt-transport-https \
+    ca-certificates \
+    software-properties-common \
+    gnupg \
+    lsb-release
 
-  # Install K3d
-  curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash
+  # Install Docker if not installed
+  if ! command -v docker &>/dev/null; then
+    echo "[*] Installing Docker..."
+    curl -fsSL https://get.docker.com | sh
+  else
+    echo "[*] Docker already installed."
+  fi
 
-  # Create a cluster and expose ports 8081 and 8082
-  k3d cluster create dev-cluster --api-port 6550 --port 8081:80@loadbalancer --port 8082:443@loadbalancer
+  # Install K3d if not installed
+  if ! command -v k3d &>/dev/null; then
+    echo "[*] Installing k3d..."
+    curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash
+  else
+    echo "[*] k3d already installed."
+  fi
 
-  # create k3d kubeconfig file
-  cp $(k3d kubeconfig write dev-cluster) /vagrant_shared/kubeconfig
+  # Install kubectl if not installed
+  if ! command -v kubectl &>/dev/null; then
+    echo "[*] Installing kubectl..."
+    KUBECTL_VERSION=$(curl -L -s https://dl.k8s.io/release/stable.txt)
+    curl -LO "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl"
+    install -o vagrant -g vagrant -m 0755 kubectl /usr/local/bin/kubectl
+    rm -f kubectl
+  else
+    echo "[*] kubectl already installed."
+  fi
 
-  # Install kubectl
-  curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-  install -o vagrant -g vagrant -m 0755 kubectl /usr/local/bin/kubectl
+  # Install Helm if not installed
+  if ! command -v helm &>/dev/null; then
+    echo "[*] Installing Helm..."
+    curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+  else
+    echo "[*] Helm already installed."
+  fi
 
-  # Install Helm
-  curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
-  chmod 700 get_helm.sh
-  ./get_helm.sh
+  # Install k9s if not installed
+  if ! command -v k9s &>/dev/null; then
+    echo "[*] Installing k9s..."
+    wget -q https://github.com/derailed/k9s/releases/download/v0.50.9/k9s_linux_amd64.deb
+    apt install -y ./k9s_linux_amd64.deb
+    rm -f k9s_linux_amd64.deb
+  else
+    echo "[*] k9s already installed."
+  fi
 
-  # Install k9s
-  wget https://github.com/derailed/k9s/releases/download/v0.32.7/k9s_linux_amd64.deb && apt install ./k9s_linux_amd64.deb && rm k9s_linux_amd64.deb
-
+  echo "[*] Provisioning completed successfully!"
 SHELL
 
 Vagrant.configure("2") do |config|
@@ -38,9 +72,8 @@ Vagrant.configure("2") do |config|
   config.vm.define "srachdiS" do |c|
     c.vm.hostname = "srachdiS"
     c.vm.network "private_network", ip: server_ip
-    c.vm.synced_folder "./shared", "/vagrant_shared"
     c.vm.provider "virtualbox" do |v|
-      v.customize ["modifyvm", :id, "--name", "srachdiS","--cpus", 4, "--memory", 2048]
+      v.customize ["modifyvm", :id, "--name", "srachdiS", "--cpus", 4, "--memory", 6144]
     end
     c.vm.provision "shell", inline: server_script
   end

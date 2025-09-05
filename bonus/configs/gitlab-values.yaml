@@ -1,0 +1,50 @@
+global:
+  edition: ce
+  kas:
+    enabled: false
+  ingress:
+    configureCertmanager: false
+    class: traefik
+    provider: traefik
+    tls:
+      enabled: false
+  hosts:
+    https: false
+    domain: 192.168.56.110.nip.io
+    externalIP: 192.168.56.110
+  rails:
+    bootsnap:
+      enabled: false
+  shell:
+    port: 32022
+installCertmanager: false
+nginx-ingress:
+  enabled: false
+prometheus:
+  install: false
+gitlab-runner:
+  install: false
+gitlab:
+  toolbox:
+    enabled: false
+  webservice:
+    minReplicas: 1
+    maxReplicas: 1
+  sidekiq:
+    minReplicas: 1
+    maxReplicas: 1
+  gitlab-shell:
+    minReplicas: 1
+    maxReplicas: 1
+    service:
+      type: NodePort
+      nodePort: 32022
+registry:
+  enabled: false
+
+postgresql:
+  metrics:
+    enabled: false
+redis:
+  metrics:
+    enabled: false

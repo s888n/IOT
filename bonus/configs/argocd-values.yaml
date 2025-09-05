@@ -1,0 +1,17 @@
+global:
+  domain: argocd.192.168.56.110.nip.io
+configs:
+  params:
+    server.insecure: true
+
+server:
+  ingress:
+    enabled: true
+    ingressClassName: traefik
+
+dex:
+  enabled: false
+
+notifications:
+  enabled: false
+

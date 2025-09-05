@@ -1,0 +1,4 @@
+docker.io:
+  auth:
+    username: ""
+    password: ""
